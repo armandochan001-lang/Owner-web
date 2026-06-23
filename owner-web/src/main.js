@@ -1,5 +1,6 @@
 import "./style.css";
 import { getDailyCuts } from "./services/dailyCuts";
+import { supabase } from "./services/supabase";
 
 async function loadCuts() {
   const cuts = await getDailyCuts();
@@ -13,7 +14,27 @@ document.querySelector("#app").innerHTML = `
     margin:40px auto;
     padding:20px;
   ">
-    <h1>Panel del Dueño</h1>
+
+<div style="
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+">
+  <h1>Panel del Dueño</h1>
+
+  <button
+    id="logout-btn"
+    style="
+      padding:10px 16px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+    "
+  >
+    Cerrar sesión
+  </button>
+</div>
 
 <div style="margin-bottom:20px;">
   <input
@@ -72,6 +93,12 @@ const searchResults =
   document.querySelector("#search-results");
 const dateInput =
   document.querySelector("#cut-date");
+document
+  .querySelector("#logout-btn")
+  ?.addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    location.reload();
+  });
 
 branchesContainer.innerHTML =
   branches.map(branch => `
@@ -556,4 +583,91 @@ ${(cut.driver_cuts || []).map(d => `
     return;
   }
 }
-loadCuts();
+async function start() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    document.querySelector("#app").innerHTML = `
+      <div style="
+        max-width:400px;
+        margin:80px auto;
+        padding:20px;
+      ">
+        <h1>Panel del Dueño</h1>
+
+        <input
+          id="email"
+          type="email"
+          placeholder="Correo"
+          style="
+            width:100%;
+            padding:12px;
+            margin-bottom:10px;
+          "
+        >
+
+        <input
+          id="password"
+          type="password"
+          placeholder="Contraseña"
+          style="
+            width:100%;
+            padding:12px;
+            margin-bottom:10px;
+          "
+        >
+
+        <button
+          id="login-btn"
+          style="
+            width:100%;
+            padding:12px;
+          "
+        >
+          Iniciar sesión
+        </button>
+
+        <div
+          id="login-error"
+          style="
+            color:red;
+            margin-top:10px;
+          "
+        ></div>
+      </div>
+    `;
+
+    document
+      .querySelector("#login-btn")
+      .addEventListener("click", async () => {
+        const email =
+          document.querySelector("#email").value;
+
+        const password =
+          document.querySelector("#password").value;
+
+        const { error } =
+          await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+        if (error) {
+          document.querySelector(
+            "#login-error"
+          ).textContent = error.message;
+          return;
+        }
+
+        location.reload();
+      });
+
+    return;
+  }
+
+  await loadCuts();
+}
+
+start();
