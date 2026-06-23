@@ -121,15 +121,16 @@ branchesContainer.innerHTML =
   `).join("");
 
 searchInput.addEventListener("input", () => {
-  const term =
-    searchInput.value
-      .trim()
-      .toLowerCase();
 
-  if (!term) {
-    searchResults.innerHTML = "";
-    return;
-  }
+const term =
+  searchInput.value
+    .trim()
+    .toLowerCase();
+
+if (term.length < 3) {
+  searchResults.innerHTML = "";
+  return;
+}
 
   const matches = [];
 
@@ -166,6 +167,11 @@ const oldMatches = matches.filter(
   m => new Date(m.date) < sevenDaysAgo
 );
 
+const recentTotal = recentMatches.reduce(
+  (sum, m) => sum + (m.amount || 0),
+  0
+);
+
   if (!matches.length) {
     searchResults.innerHTML = `
       <p>No se encontraron gastos.</p>
@@ -191,8 +197,19 @@ Fecha: ${new Date(m.date).toLocaleDateString("es-MX", {
   </div>
 `;
 
-searchResults.innerHTML =
-  recentMatches.map(renderCard).join("");
+searchResults.innerHTML = `
+  <div style="
+    background:#eef8ff;
+    border:1px solid #cfe8ff;
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:15px;
+  ">
+    <strong>Últimos 7 días</strong><br>
+    ${recentMatches.length} movimiento${recentMatches.length === 1 ? "" : "s"}<br>
+    Total pagado: $${recentTotal}
+  </div>
+` + recentMatches.map(renderCard).join("");
 
 if (oldMatches.length) {
   searchResults.innerHTML += `
