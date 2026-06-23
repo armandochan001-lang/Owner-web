@@ -21,7 +21,22 @@ document.querySelector("#app").innerHTML = `
   align-items:center;
   margin-bottom:20px;
 ">
-  <h1>Panel del Dueño</h1>
+<div style="
+  display:flex;
+  align-items:center;
+  gap:12px;
+">
+  <img
+    src="/logo.png"
+    alt="El Winik"
+    style="
+      width:130px;
+      height:130px;
+      object-fit:contain;
+    "
+  />
+  <h1 style="margin:0;">El Winik</h1>
+</div>
 
   <button
     id="logout-btn"
@@ -108,13 +123,17 @@ branchesContainer.innerHTML =
     <button
       class="branch-btn"
       data-branch="${branch}"
-      style="
-        padding:12px 20px;
-        border:none;
-        border-radius:10px;
-        cursor:pointer;
-        font-size:16px;
-      "
+style="
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:16px;
+  font-weight:700;
+  background:#a12a2a;
+  color:white;
+"
+
     >
       ${branch}
     </button>
@@ -154,20 +173,32 @@ if (term.length < 3) {
 matches.sort((a, b) =>
   new Date(b.date) - new Date(a.date)
 );
-const sevenDaysAgo = new Date();
 
-sevenDaysAgo.setDate(
-  sevenDaysAgo.getDate() - 7
+const today = new Date();
+
+const monday = new Date(today);
+
+const dayOfWeek = monday.getDay();
+
+const diff =
+  dayOfWeek === 0
+    ? -6
+    : 1 - dayOfWeek;
+
+monday.setDate(
+  monday.getDate() + diff
 );
 
+const startOfWeek =
+  monday.toLocaleDateString("en-CA");
+
 const recentMatches = matches.filter(
-  m => new Date(m.date) >= sevenDaysAgo
+  m => m.date >= startOfWeek
 );
 
 const oldMatches = matches.filter(
-  m => new Date(m.date) < sevenDaysAgo
+  m => m.date < startOfWeek
 );
-
 
 
 const recentTotal = recentMatches.reduce(
@@ -181,7 +212,19 @@ const recentTotal = recentMatches.reduce(
     `;
     return;
   }
-const renderCard = (m) => `
+const renderCard = (m) => {
+  const [y, month, d] = m.date.split("-");
+
+  const meses = [
+    "ene","feb","mar","abr","may","jun",
+    "jul","ago","sep","oct","nov","dic"
+  ];
+
+  const fechaBonita =
+    d + " " + meses[Number(month) - 1] + " " + y;
+
+  return `
+
   <div style="
     background:#fff5f5;
     border:1px solid #f1d5d5;
@@ -191,14 +234,12 @@ const renderCard = (m) => `
   ">
     <strong>${m.concept}</strong><br>
     Sucursal: ${m.branch}<br>
-Fecha: ${new Date(m.date).toLocaleDateString("es-MX", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-})}<br>
+Fecha: ${fechaBonita}<br>
+
     Monto: $${m.amount}
   </div>
 `;
+};
 
 searchResults.innerHTML = `
   <div style="
@@ -208,7 +249,7 @@ searchResults.innerHTML = `
     padding:12px;
     margin-bottom:15px;
   ">
-<strong>Últimos 7 días</strong><br>
+<strong>Esta semana</strong><br>
     ${recentMatches.length} movimiento${recentMatches.length === 1 ? "" : "s"}<br>
     Total pagado: $${recentTotal}
   </div>
@@ -624,7 +665,7 @@ async function start() {
         margin:80px auto;
         padding:20px;
       ">
-        <h1>Panel del Dueño</h1>
+<h1> El Winik</h1>
 
         <input
           id="email"
