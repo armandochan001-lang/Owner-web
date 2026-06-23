@@ -155,6 +155,7 @@ matches.sort((a, b) =>
   new Date(b.date) - new Date(a.date)
 );
 const sevenDaysAgo = new Date();
+
 sevenDaysAgo.setDate(
   sevenDaysAgo.getDate() - 7
 );
@@ -166,6 +167,8 @@ const recentMatches = matches.filter(
 const oldMatches = matches.filter(
   m => new Date(m.date) < sevenDaysAgo
 );
+
+
 
 const recentTotal = recentMatches.reduce(
   (sum, m) => sum + (m.amount || 0),
@@ -205,7 +208,7 @@ searchResults.innerHTML = `
     padding:12px;
     margin-bottom:15px;
   ">
-    <strong>Últimos 7 días</strong><br>
+<strong>Últimos 7 días</strong><br>
     ${recentMatches.length} movimiento${recentMatches.length === 1 ? "" : "s"}<br>
     Total pagado: $${recentTotal}
   </div>
