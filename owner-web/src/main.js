@@ -59,10 +59,13 @@ document.querySelector("#app").innerHTML = `
     id="cut-date"
     type="date"
     style="
-      padding:10px;
+      padding:12px;
       border:1px solid #ddd;
       border-radius:10px;
       font-size:16px;
+ background:white;
+  color:black;
+  min-height:44px;
     "
   >
 </div>
@@ -294,8 +297,9 @@ container.innerHTML = `
       padding:20px;
       text-align:center;
     ">
-      <div>Repartidores activos</div>
-      <h2>${cut.driver_cuts.length}</h2>
+<div>Pizzas vendidas</div>
+<h2>${cut.total_pizzas || 0}</h2>
+
     </div>
   </div>
 
@@ -304,13 +308,14 @@ container.innerHTML = `
     grid-template-columns:2fr 1fr;
     gap:20px;
   ">
-    <div style="
-      background:white;
-      border:1px solid #ddd;
-      border-radius:12px;
-      padding:20px;
-      min-height:400px;
-    ">
+
+<div style="
+  background:white;
+  border:1px solid #ddd;
+  border-radius:12px;
+  padding:20px;
+  min-height:400px;
+">
 
 <h3>CANCELACIONES DEL DÍA</h3>
 
