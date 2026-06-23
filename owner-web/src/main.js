@@ -182,7 +182,11 @@ const renderCard = (m) => `
   ">
     <strong>${m.concept}</strong><br>
     Sucursal: ${m.branch}<br>
-    Fecha: ${m.date}<br>
+Fecha: ${new Date(m.date).toLocaleDateString("es-MX", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+})}<br>
     Monto: $${m.amount}
   </div>
 `;
