@@ -123,6 +123,18 @@ searchInput.addEventListener("input", () => {
 matches.sort((a, b) =>
   new Date(b.date) - new Date(a.date)
 );
+const sevenDaysAgo = new Date();
+sevenDaysAgo.setDate(
+  sevenDaysAgo.getDate() - 7
+);
+
+const recentMatches = matches.filter(
+  m => new Date(m.date) >= sevenDaysAgo
+);
+
+const oldMatches = matches.filter(
+  m => new Date(m.date) < sevenDaysAgo
+);
 
   if (!matches.length) {
     searchResults.innerHTML = `
@@ -130,22 +142,51 @@ matches.sort((a, b) =>
     `;
     return;
   }
+const renderCard = (m) => `
+  <div style="
+    background:#fff5f5;
+    border:1px solid #f1d5d5;
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+  ">
+    <strong>${m.concept}</strong><br>
+    Sucursal: ${m.branch}<br>
+    Fecha: ${m.date}<br>
+    Monto: $${m.amount}
+  </div>
+`;
 
-  searchResults.innerHTML =
-    matches.map(m => `
-      <div style="
-        background:#fff5f5;
-        border:1px solid #f1d5d5;
+searchResults.innerHTML =
+  recentMatches.map(renderCard).join("");
+
+if (oldMatches.length) {
+  searchResults.innerHTML += `
+    <button
+      id="show-all-results"
+      style="
+        padding:10px 16px;
+        border:none;
         border-radius:10px;
-        padding:12px;
-        margin-bottom:10px;
-      ">
-        <strong>${m.concept}</strong><br>
-        Sucursal: ${m.branch}<br>
-        Fecha: ${m.date}<br>
-        Monto: $${m.amount}
-      </div>
-    `).join("");
+        cursor:pointer;
+        font-weight:bold;
+      "
+    >
+      Ver historial completo (${oldMatches.length} resultados más)
+    </button>
+  `;
+
+  setTimeout(() => {
+    document
+      .querySelector("#show-all-results")
+      ?.addEventListener("click", () => {
+        searchResults.innerHTML =
+          matches.map(renderCard).join("");
+      });
+  }, 0);
+}
+
+
 });
 
 document
