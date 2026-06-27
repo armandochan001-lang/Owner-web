@@ -52,10 +52,46 @@ document.querySelector("#app").innerHTML = `
 </div>
 
 <div style="margin-bottom:20px;">
+
+  <div style="
+    display:flex;
+    gap:10px;
+    margin-bottom:10px;
+  ">
+    <button
+      id="search-expenses"
+      style="
+        padding:8px 16px;
+        border:none;
+        border-radius:8px;
+        background:#a12a2a;
+        color:white;
+        cursor:pointer;
+        font-weight:bold;
+      "
+    >
+      Gastos
+    </button>
+
+    <button
+      id="search-incomes"
+      style="
+        padding:8px 16px;
+        border:1px solid #ccc;
+        border-radius:8px;
+        background:white;
+        cursor:pointer;
+        font-weight:bold;
+      "
+    >
+      Ingresos
+    </button>
+  </div>
+
   <input
     id="expense-search"
     type="text"
-    placeholder="Buscar gasto global..."
+    placeholder="Buscar..."
     style="
       width:100%;
       padding:12px;
@@ -64,9 +100,9 @@ document.querySelector("#app").innerHTML = `
       font-size:16px;
     "
   />
+
 </div>
 
-<div id="search-results"></div>
 <div id="search-results"></div>
 
 <div style="margin-bottom:20px;">
@@ -109,6 +145,38 @@ const searchInput =
 
 const searchResults =
   document.querySelector("#search-results");
+const expensesBtn =
+  document.querySelector("#search-expenses");
+
+const incomesBtn =
+  document.querySelector("#search-incomes");
+
+let searchMode = "expenses";
+expensesBtn.addEventListener("click", () => {
+  searchMode = "expenses";
+
+  expensesBtn.style.background = "#a12a2a";
+  expensesBtn.style.color = "white";
+
+  incomesBtn.style.background = "white";
+  incomesBtn.style.color = "black";
+
+  searchInput.placeholder = "Buscar gasto...";
+  searchInput.dispatchEvent(new Event("input"));
+});
+
+incomesBtn.addEventListener("click", () => {
+  searchMode = "incomes";
+
+  incomesBtn.style.background = "#2e7d32";
+  incomesBtn.style.color = "white";
+
+  expensesBtn.style.background = "white";
+  expensesBtn.style.color = "black";
+
+  searchInput.placeholder = "Buscar ingreso...";
+  searchInput.dispatchEvent(new Event("input"));
+});
 const dateInput =
   document.querySelector("#cut-date");
 document
@@ -153,22 +221,34 @@ if (term.length < 3) {
 
   const matches = [];
 
-  cuts.forEach(cut => {
-    (cut.expenses_list || []).forEach(expense => {
-      const concept =
-        (expense.concept || "")
-          .toLowerCase();
+cuts.forEach(cut => {
 
-      if (concept.includes(term)) {
-        matches.push({
-          branch: cut.branch,
-          date: cut.cut_date,
-          concept: expense.concept,
-          amount: expense.amount,
-        });
-      }
-    });
+  const items =
+    searchMode === "expenses"
+      ? (cut.expenses_list || [])
+      : (cut.incomes_list || []);
+
+  items.forEach(item => {
+
+    const concept =
+      (item.concept || "")
+        .toLowerCase();
+
+    if (concept.includes(term)) {
+
+      matches.push({
+        branch: cut.branch,
+        date: cut.cut_date,
+        concept: item.concept,
+        amount: item.amount,
+      });
+
+    }
+
   });
+
+});
+
 
 matches.sort((a, b) =>
   new Date(b.date) - new Date(a.date)
@@ -222,12 +302,21 @@ const renderCard = (m) => {
 
   const fechaBonita =
     d + " " + meses[Number(month) - 1] + " " + y;
+const bgColor =
+  searchMode === "expenses"
+    ? "#fff5f5"
+    : "#f3fff5";
+
+const borderColor =
+  searchMode === "expenses"
+    ? "#f1d5d5"
+    : "#cfe8d1";
 
   return `
 
   <div style="
-    background:#fff5f5;
-    border:1px solid #f1d5d5;
+background:${bgColor};
+border:1px solid ${borderColor};
     border-radius:10px;
     padding:12px;
     margin-bottom:10px;
@@ -250,8 +339,9 @@ searchResults.innerHTML = `
     margin-bottom:15px;
   ">
 <strong>Esta semana</strong><br>
-    ${recentMatches.length} movimiento${recentMatches.length === 1 ? "" : "s"}<br>
-    Total pagado: $${recentTotal}
+${recentMatches.length} movimiento${recentMatches.length === 1 ? "" : "s"}<br>
+${searchMode === "expenses" ? "Total pagado" : "Total ingresos"}: $${recentTotal}
+
   </div>
 ` + recentMatches.map(renderCard).join("");
 
@@ -322,10 +412,38 @@ if (!cut) {
   `;
   return;
 }        
+const fechaBonita = (() => {
+  const [y, month, d] = cut.cut_date.split("-");
+
+  const meses = [
+    "ene","feb","mar","abr","may","jun",
+    "jul","ago","sep","oct","nov","dic"
+  ];
+
+  return `${d} ${meses[Number(month) - 1]} ${y}`;
+})();
+
+const horaSync = cut.last_sync
+  ? new Date(cut.last_sync).toLocaleTimeString("es-MX", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    })
+  : "No disponible";
+
 container.innerHTML = `
-  <h2 style="margin-bottom:20px;">
+  <h2 style="margin-bottom:8px;">
     Repartidores - ${branch}
   </h2>
+
+  <div style="
+    color:#666;
+    margin-bottom:20px;
+    line-height:1.8;
+  ">
+    📅 ${fechaBonita}<br>
+    🕒 Última sincronización: ${horaSync}
+  </div>
 
   <div style="
     display:grid;
