@@ -50,6 +50,128 @@ document.querySelector("#app").innerHTML = `
     Cerrar sesión
   </button>
 </div>
+<div
+  style="
+    background:#fff;
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  "
+>
+
+  <h2 style="margin:0 0 20px 0;">
+    📊 Dashboard
+  </h2>
+
+  <div
+    style="
+      display:flex;
+      gap:12px;
+      align-items:end;
+      margin-bottom:20px;
+      flex-wrap:wrap;
+    "
+  >
+
+    <div>
+      <div style="font-size:13px;margin-bottom:6px;">
+        Desde
+      </div>
+
+      <input
+        type="date"
+        id="dashboard-from"
+        style="
+          padding:10px;
+          border:1px solid #ddd;
+          border-radius:8px;
+        "
+      >
+    </div>
+
+    <div>
+      <div style="font-size:13px;margin-bottom:6px;">
+        Hasta
+      </div>
+
+      <input
+        type="date"
+        id="dashboard-to"
+        style="
+          padding:10px;
+          border:1px solid #ddd;
+          border-radius:8px;
+        "
+      >
+    </div>
+<div>
+  <div style="font-size:13px;margin-bottom:6px;">
+    Pizzería
+  </div>
+
+  <select
+    id="dashboard-branch"
+    style="
+      padding:10px;
+      border:1px solid #ddd;
+      border-radius:8px;
+      min-width:180px;
+      background:white;
+    "
+  >
+    <option value="">Todas</option>
+  </select>
+</div>
+
+    <button
+      id="dashboard-search"
+      style="
+        padding:10px 18px;
+        border:none;
+        border-radius:8px;
+        background:#a12a2a;
+        color:white;
+        font-weight:bold;
+        cursor:pointer;
+      "
+    >
+      Consultar
+    </button>
+
+  </div>
+
+  <div
+    style="
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:16px;
+    "
+  >
+
+    <div class="dashboard-card">
+      <div> Ventas Totales</div>
+      <h2 id="dashboard-sales">$0</h2>
+    </div>
+
+    <div class="dashboard-card">
+      <div> Gastos Totales</div>
+      <h2 id="dashboard-expenses">$0</h2>
+    </div>
+
+    <div class="dashboard-card">
+      <div> Ganancia</div>
+      <h2 id="dashboard-profit">$0</h2>
+    </div>
+
+    <div class="dashboard-card">
+      <div> Pizzas Vendidas</div>
+      <h2 id="dashboard-pizzas">0</h2>
+    </div>
+
+  </div>
+
+</div>
 
 <div style="margin-bottom:20px;">
 
@@ -135,7 +257,6 @@ document.querySelector("#app").innerHTML = `
     <div id="cuts"></div>
   </div>
 `;
-
   const container = document.querySelector("#cuts");
 container.innerHTML = "";
 const branchesContainer =
@@ -177,14 +298,91 @@ incomesBtn.addEventListener("click", () => {
   searchInput.placeholder = "Buscar ingreso...";
   searchInput.dispatchEvent(new Event("input"));
 });
+function actualizarDashboard(cuts, desde, hasta, branch) {
+  const filtrados = cuts.filter(cut => {
+    if (!desde && !hasta) return true;
+
+    if (desde && cut.cut_date < desde) return false;
+    if (hasta && cut.cut_date > hasta) return false;
+if (branch && cut.branch !== branch) return false;
+    return true;
+  });
+
+  const ventas = filtrados.reduce(
+    (total, cut) => total + (cut.sales || 0),
+    0
+  );
+
+  const gastos = filtrados.reduce(
+    (total, cut) => total + (cut.expenses || 0),
+    0
+  );
+
+  const ingresos = filtrados.reduce(
+    (total, cut) => total + (cut.income || 0),
+    0
+  );
+
+  const pizzas = filtrados.reduce(
+    (total, cut) => total + (cut.total_pizzas || 0),
+    0
+  );
+
+  const ganancia = ventas + ingresos - gastos;
+
+  document.querySelector("#dashboard-sales").textContent =
+    "$" + ventas.toLocaleString();
+
+  document.querySelector("#dashboard-expenses").textContent =
+    "$" + gastos.toLocaleString();
+
+  document.querySelector("#dashboard-profit").textContent =
+    "$" + ganancia.toLocaleString();
+
+  document.querySelector("#dashboard-pizzas").textContent =
+    pizzas.toLocaleString();
+}
+
 const dateInput =
   document.querySelector("#cut-date");
+const dashboardFrom = document.querySelector("#dashboard-from");
+const dashboardTo = document.querySelector("#dashboard-to");
+const dashboardSearch = document.querySelector("#dashboard-search");
+const dashboardBranch =
+  document.querySelector("#dashboard-branch");
+const today = new Date().toISOString().split("T")[0];
+
+dashboardFrom.value = today;
+dashboardTo.value = today;
+
 document
   .querySelector("#logout-btn")
   ?.addEventListener("click", async () => {
     await supabase.auth.signOut();
     location.reload();
   });
+
+dashboardSearch?.addEventListener("click", () => {
+  actualizarDashboard(
+    cuts,
+    dashboardFrom.value,
+    dashboardTo.value,
+    dashboardBranch.value
+  );
+});
+
+dashboardBranch.innerHTML = `
+  <option value="">Todas</option>
+  ${branches
+    .map(
+      branch =>
+        `<option value="${branch}">${branch}</option>`
+    )
+    .join("")}
+`;
+dashboardBranch.value = "";
+
+actualizarDashboard(cuts, today, today, "");
 
 branchesContainer.innerHTML =
   branches.map(branch => `
